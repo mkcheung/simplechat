@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+	<body>
+		<ul id="messages">
+			<li>Welcome to Chat.</li>
+		</ul>
+
+		<form id="form-send-message" action="/messages" method="POST">
+			<input id="temp" name="message"/>
+		</form>
+		<button onclick="location.href = '/logout';" id="myButton" class="float-left submit-button" >Logout</button>
+		<script src="js/jquery-3.1.1.js"></script>
+		<script src="js/moment-with-locales.js"></script>
+		<script src="js/underscore-min.js"></script>
+
+
+	<script type="text/html" id="template-message">
+	  <div id="<%= id %>">
+	  	<%= createdAt %></br>
+	  	<%= message %>
+	  </div>
+	</script>
+
+	<script>
+		 loadChat();
+
+
+		function loadChat(){
+			$.ajax({
+				type:'GET',
+				url: '/messages',
+				dataType: 'json',
+				success: function(data){
+					_.each(data, function(value, key){
+						html = _.template($('#template-message').html(), [id = value.id, message= value.message, createdAt= value.createdAt]);
+						$( "#messages" ).append(html);
+					});
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+				},
+				complete: function(XMLHttpRequest, status){
+				}
+			});
+		}
+
+		$('#form-send-message').on("submit", function(e){
+			var aMessage = $('#temp').val();
+
+			submitUserData(aMessage);
+			return false;
+		});
+
+		function submitUserData(aMessage){
+			$.ajax({
+				type:'POST',
+				url: '/messages',
+				dataType: 'json',
+				data:{'message':aMessage},
+				success: function(data){
+					var messageRow = data.pop();
+					var html = _.template($('#template-message').html(), [id = messageRow.id, message = messageRow.message, createdAt= messageRow.createdAt]);
+					$( "#messages" ).append(html);
+					$('#temp').val('');
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+				},
+				complete: function(XMLHttpRequest, status){
+				}
+			});
+		};
+
+	</script>
+
+	</body>
+
+</html>
