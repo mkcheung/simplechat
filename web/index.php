@@ -1,5 +1,10 @@
 <?php
 
+function _h($value)
+{
+  echo htmlentities($value);
+}
+
 function autoloadController($className) {
     $filename = "../controllers/" . $className . ".php";
     if (is_readable($filename)) {
@@ -24,5 +29,6 @@ $controllerName = $router->controllerName;
 $methodName = $router->methodName;
 
 $controller = new $controllerName($em);
+$controller->setRequest($request);
 $controller->$methodName();
 

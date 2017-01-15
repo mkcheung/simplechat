@@ -30,6 +30,7 @@ class MessagesController extends MainController{
 	private function returnAllFormat($messages, $type = null){
 
 		$formattedMessages = [];
+		//$format = $this->request->getFormat();
 		switch($type){
 			case 'html':
 				foreach($messages as $message){
@@ -50,11 +51,12 @@ class MessagesController extends MainController{
 		return $formattedMessages;
 	}
 
-	public function getMessages($verb=null){
+	public function index()
+	{
 		$messageList = '';
 		//why did I have to spell out the namespace here?
 		$messageRecords = $this->em->getRepository("\Entity\Message")->findAll();
 		echo $this->returnAllFormat($messageRecords);
 	}
 
-} // end ChatController
+} // end MessagesController

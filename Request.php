@@ -4,16 +4,29 @@ class Request{
 
 	protected $verb;
 	protected $parameters;
+	protected $format;
 	protected $url_components;
 
 	public function __construct(){
+		$this->format = 'html';
 		$this->verb = $_SERVER['REQUEST_METHOD'];
 		$this->assembleURL();
 		$this->parseParameters();
+		if (($this->verb == 'POST') && isset($_POST['_method'])) {
+			$this->verb = strtoupper($_POST['_method']);
+		}
 	}
 
 	public function getVerb(){
 		return $this->verb;
+	}
+
+	public function getFormat(){
+		return $this->format;
+	}
+
+	public function setParam($name, $value) {
+		$this->parameters[$name] = $value;
 	}
 
 	public function getParameters(){
@@ -26,8 +39,17 @@ class Request{
 
 	protected function assembleURL(){
 		// $this->parameters = explode('/', $_SERVER['PATH_INFO']);
-    $uri = $_SERVER['REQUEST_URI'];
-    $uri = preg_replace('!^/!', '', $uri);
+		$uri = $_SERVER['REQUEST_URI'];
+		if (preg_match('!\.(\w+)$!', $uri, $m)) {
+			$this->format = $m[1];
+			$uri = preg_replace('!\.\w+$!', '', $uri);
+		}
+
+		// /messages.json
+		// /messages/100.json
+		// /messages/100
+
+		$uri = preg_replace('!^/!', '', $uri);
 		$this->url_components = explode('/', $uri);
 	}
 
