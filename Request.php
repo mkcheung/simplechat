@@ -26,7 +26,9 @@ class Request{
 
 	protected function assembleURL(){
 		// $this->parameters = explode('/', $_SERVER['PATH_INFO']);
-		$this->url_components = explode('/', $_SERVER['REQUEST_URI']);
+    $uri = $_SERVER['REQUEST_URI'];
+    $uri = preg_replace('!^/!', '', $uri);
+		$this->url_components = explode('/', $uri);
 	}
 
 	protected function parseParameters(){

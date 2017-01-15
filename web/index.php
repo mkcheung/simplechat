@@ -12,21 +12,17 @@ spl_autoload_register("autoloadController");
 include "../bootstrap.php";
 include "../controllers/mainController.php";
 require "../Request.php";
+require "../Router.php";
 define("VIEWS", "../views/");
 session_start();
 
-
 $request = new Request();
-$verb = $request->getVerb();
-$urlComponents = $request->getUrlComponents();
+$router = new Router();
+$router->process($request);
 
-if(empty($urlComponents[1])){
-	$resource = 'chat';
-} else {
-	$resource = $urlComponents[1];
-}
+$controllerName = $router->controllerName;
+$methodName = $router->methodName;
 
-$controller = $resource.'Controller';
+$controller = new $controllerName($em);
+$controller->$methodName();
 
-$controller = new $controller($em);
-$controller->determineAction($verb);
