@@ -8,20 +8,116 @@
 		</strong>
 
 		<ul id="roles">
+			<?php echo $listOfAllRoles; ?>
 		</ul>
 
-		<form id="form-send-message" action="/roles" method="POST">
+		<form id="form-send-role" action="/roles" method="POST">
 			<input id="type" name="type"/> </br>
 			<input type="submit"/>
 		</form>
+		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 		<script src="js/jquery-3.1.1.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
 		<script src="js/moment-with-locales.js"></script>
 		<script src="js/underscore-min.js"></script>
+
+		<script type="text/html" id="template-role">
+			<li id="<%=id%>">
+			<div class="editable">
+				<%=type%>
+			</div>
+			<button>Delete</button>
+			</li>
+		</script>
 
 	</body>
 
 	<script>
+		$.fn.editable.defaults.mode = 'inline';
+		// $.fn.editable.defaults.ajaxOptions = {type: "PUT"};
+		applyXEditable();
+		function applyXEditable(){
+			$('.editable').editable({
+			    type: 'text',
+			    url: '/roles',
+			    send: 'always',
+				    params: function(params) {
+				    var data = {};
+				    data['id'] = ($(this).parent()[0].id);
+				    data['type'] = params.value;
+				    return data ;
+				  },
+			    ajaxOptions: {
+				    type: 'PUT'
+				},
+			    success: function(response, newValue) {
+			    	reloadRoles();
+			    }
+			});
+		}
 
+		$('#roles').on('click','button' ,function(e){
+			var roleId = $(this).closest('li').attr('id');
+			$.ajax({
+				type:'DELETE',
+				url: '/roles',
+				data:{'id':roleId},
+				success: function(data){
+					reloadRoles();
+					applyXEditable();
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+				},
+				complete: function(XMLHttpRequest, status){
+				}
+			});
+			return false;
+		});
+
+
+		function reloadRoles(){
+
+			$.ajax({
+		    	type: 'html',
+				url: '/roles.json',
+				success: function(data){
+					$('#roles').empty(data);
+					$('#roles').html(data);
+					applyXEditable();
+				},
+			});
+
+		}
+
+
+		$('#form-send-role').on("submit", function(e){
+			var roleType = $('#type').val();
+
+			submitRoleData(roleType);
+			return false;
+		});
+
+		function submitRoleData(roleType){
+			$.ajax({
+				type:'POST',
+				url: '/roles',
+				dataType: 'json',
+				data:{'type':roleType},
+				success: function(data){
+					var roleRow = data.pop();
+					var html = _.template($('#template-role').html(), [id = roleRow.id, type = roleRow.type]);
+					$( "#roles" ).append(html);
+					$('#type').val('');
+					applyXEditable();
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown){
+				},
+				complete: function(XMLHttpRequest, status){
+				}
+			});
+
+		}
 	</script>
 
 </html>

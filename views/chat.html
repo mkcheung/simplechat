@@ -3,76 +3,178 @@
 <head>
 </head>
 	<body>
-		<ul id="messages">
-			<li>Welcome to Chat.</li>
-		</ul>
 
-		<form id="form-send-message" action="/messages" method="POST">
-			<input id="temp" name="message"/>
-		</form>
+		<strong><u>Welcome to Chat.</u></strong>
+
+		<div class="row">
+			<div class="col-md-4" id="loggedInUsers">
+			<strong>Users</strong>
+				<ul id = "listOfUsers">
+				</ul>
+			</div>
+			<div class="col-md-5">
+
+				<div id="messages">
+					<?php echo $chatMessages; ?>
+				</div>
+			</div>
+			<div class="col-md-3">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<form id="form-send-message" action="/messages" method="POST">
+					<input id="message" name="message"/>
+				</form>
+			</div>
+		</div>
+		<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 		<button onclick="location.href = '/logout';" id="myButton" class="float-left submit-button" >Logout</button>
 		<script src="js/jquery-3.1.1.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
 		<script src="js/moment-with-locales.js"></script>
 		<script src="js/underscore-min.js"></script>
 
+		<script type="text/html" id="template-message">
+		  <li id="<%= id %>">
+		  	<%= createdAt %>
+			<div class="editable">
+				<%=message%>
+			</div>
+		  </li>
+		</script>
 
-	<script type="text/html" id="template-message">
-	  <div id="<%= id %>">
-	  	<%= createdAt %></br>
-	  	<%= message %>
-	  </div>
-	</script>
+		<script type="text/html" id="template-user">
+		  <li id="<%= id %>">
+				<%=name%>
+		  </li>
+		</script>
 
-	<script>
-		 loadChat();
+		<script>
+			$.fn.editable.defaults.mode = 'inline';
+			$.fn.editable.defaults.ajaxOptions = {type: "PUT"};
+			applyXEditable();
+			getAllUsers();
+			function applyXEditable(){
+				$('.editable').editable({
+				    type: 'text',
+				    url: '/messages',
+				    send: 'always',
+					    params: function(params) {
+					    var data = {};
+					    data['id'] = ($(this).parent()[0].id);
+					    data['message'] = params.value;
+					    return data;
+					  },
+				    ajaxOptions: {
+					    type: 'PUT'
+					},
+				    success: function(response, newValue) {
+				    	reloadMessages();
+				    }
+				});
+			}
 
 
-		function loadChat(){
-			$.ajax({
-				type:'GET',
-				url: '/messages',
-				dataType: 'json',
-				success: function(data){
-					_.each(data, function(value, key){
-						html = _.template($('#template-message').html(), [id = value.id, message= value.message, createdAt= value.createdAt]);
+			function reloadMessages(){
+
+				$.ajax({
+			    	type: 'html',
+					url: '/messages.json',
+					success: function(data){
+						$('#messages').empty(data);
+						$('#messages').html(data);
+						applyXEditable();
+					},
+				});
+
+			}
+
+			$('#form-send-message').on("submit", function(e){
+				var aMessage = $('#message').val();
+
+				;
+				submitMessage(aMessage, $("#loggedInUsers li[data-sendTo='active']").attr('id')) ;
+				return false;
+			});
+
+			function submitMessage(aMessage, sendToUser){
+				$.ajax({
+					type:'POST',
+					url: '/messages',
+					dataType: 'json',
+					data:{'message':aMessage, 'sendToUser':sendToUser},
+					success: function(data){
+						var messageRow = data.pop();
+						var html = _.template($('#template-message').html(), [id = messageRow.id, message = messageRow.message, createdAt= messageRow.createdAt]);
 						$( "#messages" ).append(html);
+						$('#temp').val('');
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown){
+					},
+					complete: function(XMLHttpRequest, status){
+					}
+				});
+			};
+
+			function getAllUsers(){
+				$.ajax({
+					type:'GET',
+					url:'/users.json',
+					dataType:'json',
+					success:function(data){
+						var html = '';
+						for (var i in data){
+							html = _.template($('#template-user').html(), [id = data[i].id, name = data[i].name]);
+							$('#listOfUsers').append(html);
+						}
+					},
+					error: function(XMLHttpRequest, textStatus, errorThrown){
+					},
+					complete: function(XMLHttpRequest, status){
+					}
+				});
+
+				$('#loggedInUsers').on('click','li', function(e){
+					var listOfMessages = $('#messages');
+					var selectedUserId = $(this).attr('id');
+					var _this = $(this);
+					$.ajax({
+						type:'GET',
+						url:'/messages.json',
+						dataType:'json',
+						data:{'directedTo':selectedUserId},
+						success:function(data){
+							$('#loggedInUsers li').removeAttr('data-sendTo').removeClass('directedTo');
+							_this.attr('data-sendTo',"active");
+							_this.addClass('directedTo');
+							$('#messages').empty(data);
+							var html = '';
+							for (var i in data){
+								html = _.template($('#template-message').html(), [id = data[i].id, message = data[i].message, createdAt= data[i].createdAt]);
+								$('#messages').append(html);
+							}
+						},
+						error: function(XMLHttpRequest, textStatus, errorThrown){
+							console.log(textStatus);
+							console.log(errorThrown);
+						},
+						complete: function(XMLHttpRequest, status){
+						}
 					});
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown){
-				},
-				complete: function(XMLHttpRequest, status){
-				}
-			});
-		}
 
-		$('#form-send-message').on("submit", function(e){
-			var aMessage = $('#temp').val();
+				});
 
-			submitUserData(aMessage);
-			return false;
-		});
+			}
 
-		function submitUserData(aMessage){
-			$.ajax({
-				type:'POST',
-				url: '/messages',
-				dataType: 'json',
-				data:{'message':aMessage},
-				success: function(data){
-					var messageRow = data.pop();
-					var html = _.template($('#template-message').html(), [id = messageRow.id, message = messageRow.message, createdAt= messageRow.createdAt]);
-					$( "#messages" ).append(html);
-					$('#temp').val('');
-				},
-				error: function(XMLHttpRequest, textStatus, errorThrown){
-				},
-				complete: function(XMLHttpRequest, status){
-				}
-			});
-		};
-
-	</script>
+		</script>
 
 	</body>
+<style>
+	.directedTo{
+		background-color: powderblue;
+	}
 
+</style>
 </html>

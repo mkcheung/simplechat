@@ -19,10 +19,9 @@ session_start();
 $request = new Request();
 $router = new Router();
 $router->process($request);
-
 $controllerName = $router->controllerName;
 $methodName = $router->methodName;
 
-$controller = new $controllerName($em);
+$controller = new $controllerName($em,$request);
 $controller->$methodName();
 

@@ -5,15 +5,30 @@ class Request{
 	protected $verb;
 	protected $parameters;
 	protected $url_components;
+	protected $format = '';
 
 	public function __construct(){
 		$this->verb = $_SERVER['REQUEST_METHOD'];
-		$this->assembleURL();
 		$this->parseParameters();
+		$this->assembleURL();
 	}
 
 	public function getVerb(){
 		return $this->verb;
+	}
+
+	public function getFormat(){
+		return $this->format;
+	}
+
+	public function setFormat(){
+
+		preg_match('![.](\w+)!', $this->url_components[0], $m);
+
+		if(count($m) >=2 ){
+			$this->format = $m[1];
+			$this->url_components[0] = preg_replace('!\.\w+$!', '', $this->url_components[0]);
+		}
 	}
 
 	public function getParameters(){
@@ -25,10 +40,11 @@ class Request{
 	}
 
 	protected function assembleURL(){
-		// $this->parameters = explode('/', $_SERVER['PATH_INFO']);
-    $uri = $_SERVER['REQUEST_URI'];
-    $uri = preg_replace('!^/!', '', $uri);
+    	$uri = $_SERVER['REQUEST_URI'];
+		$urlAndQuery = explode('?', $uri);
+    	$uri = preg_replace('!^/!', '', $urlAndQuery[0]);
 		$this->url_components = explode('/', $uri);
+		$this->setFormat();
 	}
 
 	protected function parseParameters(){
@@ -42,18 +58,18 @@ class Request{
 		if(isset($_SERVER['CONTENT_TYPE'])){
 			$content_type = $_SERVER['CONTENT_TYPE'];
 		}
-
 		switch($content_type){
 			case 'application/json':
 				$bodyParameters = json_decode($requestBody);
 				foreach($bodyParameters as $key => $value){
-					$parameters[$key] = $value;
+					$this->parameters[$key] = $value;
 				}
 				break;
+			case 'application/x-www-form-urlencoded; charset=UTF-8':
 			case 'application/x-www-urlencoded':
 				parse_str($requestBody, $bodyParameters);
 				foreach($bodyParameters as $key => $value){
-					$parameters[$key] = $value;
+					$this->parameters[$key] = $value;
 				}
 				break;
 			default:

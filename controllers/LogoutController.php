@@ -2,19 +2,7 @@
 
 class LogoutController extends MainController{
 
-	public function determineAction($verb){
-		switch($verb){
-			case 'GET':
-			case 'POST':
-				$methodCall = 'logout';
-				break;
-			default:
-		}
-		$this->$methodCall($verb);
-
-	}
-
-	public function logout($verb=null){
+	public function index($verb=null){
 		unset($_SESSION['user_id']);
 		session_destroy();
 		header('Location: /');

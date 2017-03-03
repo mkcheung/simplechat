@@ -2,32 +2,27 @@
 
 class LoginController extends MainController{
 
-	public function determineAction($verb){
-		switch($verb){
-			case 'GET':
-			case 'POST':
-				$methodCall = 'login';
-				break;
-			default:
-		}
-		$this->$methodCall($verb);
-
+	public function index(){
+		readfile(VIEWS."login.html");
 	}
 
-	public function login($verb){
+	public function create(){
 
-		if($verb == 'POST'){
+		if($_SERVER['REQUEST_METHOD'] == 'POST'){
 			$username = $_POST['username'];
-			$password = $_POST['password'];
-			$user = $this->em->getRepository("\Entity\User")->findBy(['username'=>$username, 'password'=>'$2y$10$YxAtgbm7kIhcAQoS1UbIOONn2SX8qTniiLyZYGr9Sz9RoC8jJuZ7m']);
+			$results = $this->em->getRepository("\Entity\User")->findBy(['username'=>$username]);
+
+			$user = $results[0];
+
+			$password = password_verify($_POST['password'], $user->getPassword());
+
+
 			if(!empty($user)){
 
-				$_SESSION['user_id'] = $user[0]->getId();
+				$_SESSION['user_id'] = $user->getId();
 				header('Location: /');
 			}
 		}
-
-		readfile(VIEWS."login.html");
 	}
 
 } // end ChatController

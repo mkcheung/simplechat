@@ -47,7 +47,7 @@ class User {
      * @var ArrayCollection
      * @ORM\OneToMany(targetEntity="Message", mappedBy="user")
      */
-    protected $messages;
+    protected $sentMessages;
 
     /**
      * @var role
@@ -56,7 +56,8 @@ class User {
      */
     protected $role;
 
-	public function __construct($username, $password) {
+
+	public function __construct($username, $password, $role) {
 
 		$date = new \DateTime();
 		$this->username = $username;
@@ -64,6 +65,8 @@ class User {
 		$this->messages     = new ArrayCollection();
 		$this->createdAt = $date;
 		$this->modifiedAt = $date;
+		$this->role = $role;
+		// $orm = $this->getDoctrine()->getManager();
 	}
 
 	/**
@@ -71,6 +74,12 @@ class User {
 	*/
 	public function setPassword($password) {
 		$this->password = password_hash($password, PASSWORD_DEFAULT);
+	}
+	/**
+	* @param string $content
+	*/
+	public function getPassword() {
+		return $this->password;
 	}
 
 	/**
@@ -95,5 +104,13 @@ class User {
 	*/
 	public function getId() {
 		return $this->id;
+	}
+
+	/**
+	*
+	* @return Role
+	*/
+	public function getRole() {
+		return $this->role;
 	}
 }

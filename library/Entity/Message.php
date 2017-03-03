@@ -39,6 +39,14 @@ class Message {
 	*/
 	protected $modifiedAt;
 
+
+	/**
+     * @var user
+	 * @ORM\ManyToOne(targetEntity="User")
+	 * @ORM\JoinColumn(name="created_by_id", referencedColumnName="user_id")
+	 */
+	protected $createdBy;
+
     /**
      * @var user
      * @ORM\ManyToOne(targetEntity="User", inversedBy="messages")
@@ -46,8 +54,11 @@ class Message {
      */
     protected $user;
 
-	public function __construct($message) {
+	public function __construct($message, $createdBy, $directedToUser='') {
 		$this->message = $message;
+		$this->createdBy = $createdBy;
+		$this->user = (!empty($directedToUser)) ? $directedToUser : null;
+
 		$this->createdAt = new \DateTime();
 		$this->modifiedAt = new \DateTime();
 	}
@@ -59,6 +70,10 @@ class Message {
 	*/
 	public function getMessage() {
 		return $this->message;
+	}
+
+	public function setMessage($message) {
+		$this->message = $message;
 	}
 
 	/**
