@@ -3,7 +3,6 @@
 <head>
 </head>
 	<body>
-<my-app>Loading...</my-app>
 		<strong><u>Welcome to Chat.</u></strong>
 
 		<div class="row">
@@ -14,6 +13,8 @@
 			</div>
 			<div class="col-md-5">
 
+
+				<chat-sub-window>Loading...</chat-sub-window>
 				<div id="messages">
 					<?php echo $chatMessages; ?>
 				</div>
@@ -42,6 +43,7 @@
 	    <script src="node_modules/@angular/core/bundles/core.umd.js"></script>
 	    <script src="node_modules/@angular/common/bundles/common.umd.js"></script>
 	    <script src="node_modules/@angular/compiler/bundles/compiler.umd.js"></script>
+	    <script src="node_modules/@angular/http/bundles/http.umd.js"></script>
 	    <script src="node_modules/@angular/platform-browser/bundles/platform-browser.umd.js"></script>
     	<script src="node_modules/@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js"></script>
 	    <script src='app/app.component.js'></script>
